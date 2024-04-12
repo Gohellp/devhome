@@ -254,4 +254,26 @@ public class ComSafeWidget
             });
         }
     }
+
+    public static async Task<string> GetIdFromUnsafeWidgetAsync(Widget widget)
+    {
+        var retries = 5;
+
+        return await Task.Run(() =>
+        {
+            while (retries-- > 0)
+            {
+                try
+                {
+                    return widget.Id;
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, $"Failed to operate on out-of-proc object with error code: 0x{ex.HResult:x}, try {retries} more times");
+                }
+            }
+
+            return string.Empty;
+        });
+    }
 }

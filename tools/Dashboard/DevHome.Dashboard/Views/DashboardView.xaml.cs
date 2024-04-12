@@ -361,7 +361,14 @@ public partial class DashboardView : ToolPage, IDisposable
             var size = WidgetHelpers.GetDefaultWidgetSize(defaultWidgetDefinition.GetWidgetCapabilities());
             var id = defaultWidgetDefinition.Id;
             var unsafeWidget = await Task.Run(async () => await widgetHost?.CreateWidgetAsync(id, size));
-            var comSafeWidget = new ComSafeWidget(unsafeWidget);
+            var unsafeWidgetId = await ComSafeWidget.GetIdFromUnsafeWidgetAsync(unsafeWidget);
+            if (unsafeWidgetId == string.Empty)
+            {
+                _log.Error($"Couldn't get Widget.Id, can't create the widget: {unsafeWidgetId}");
+                return;
+            }
+
+            var comSafeWidget = new ComSafeWidget(unsafeWidgetId);
             _log.Information($"Created default widget {id}");
 
             // Set custom state on new widget.
@@ -413,7 +420,16 @@ public partial class DashboardView : ToolPage, IDisposable
                 var size = WidgetHelpers.GetDefaultWidgetSize(newWidgetDefinition.GetWidgetCapabilities());
                 var widgetHost = await ViewModel.WidgetHostingService.GetWidgetHostAsync();
                 var unsafeWidget = await Task.Run(async () => await widgetHost?.CreateWidgetAsync(newWidgetDefinition.Id, size));
-                var comSafeWidget = new ComSafeWidget(unsafeWidget);
+                var unsafeWidgetId = await ComSafeWidget.GetIdFromUnsafeWidgetAsync(unsafeWidget);
+                if (unsafeWidgetId == string.Empty)
+                {
+                    // TODO: Show an error message if Widget creation fails
+                    // https://github.com/microsoft/devhome/issues/2623
+                    _log.Error($"Couldn't get Widget.Id, can't create the widget: {unsafeWidgetId}");
+                    return;
+                }
+
+                var comSafeWidget = new ComSafeWidget(unsafeWidgetId);
 
                 // Set custom state on new widget.
                 var position = PinnedWidgets.Count;
